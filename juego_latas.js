@@ -29,21 +29,30 @@ controls.enabled = false;
 
 // escena
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87CEEB);
+scene.background = new THREE.Color(0x0a0a2e); 
 
-// iluminacion
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+// iluminacion nocturna
+const ambientLight = new THREE.AmbientLight(0x404080, 0.3); 
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
 directionalLight.position.set(10, 15, 10);
 directionalLight.castShadow = true;
 scene.add(directionalLight);
 
+const carpaLight = new THREE.PointLight(0xffaa44, 0.8, 20);
+carpaLight.position.set(0, 8, -5);
+carpaLight.castShadow = true;
+scene.add(carpaLight);
+
+const gameLight = new THREE.PointLight(0xffffff, 0.6, 15);
+gameLight.position.set(0, 10, 5);
+scene.add(gameLight);
+
 // suelo
 const floorGeometry = new THREE.PlaneGeometry(50, 50);
 const floorMaterial = new THREE.MeshStandardMaterial({ 
-  color: 0x2d5016,
+  color: 0x1a2b0a, // Verde muy oscuro para la noche
   roughness: 0.8
 });
 const floor = new THREE.Mesh(floorGeometry, floorMaterial);
