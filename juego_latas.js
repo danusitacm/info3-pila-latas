@@ -412,7 +412,7 @@ function checkSphereCanCollision(sphere, lata) {
 
 // función para detectar colisión entre dos latas
 function checkCanCanCollision(lata1, lata2) {
-  if (lata1 === lata2 || !lata1.userData.derribada || !lata2.userData.derribada) {
+  if (lata1 === lata2) {
     return false;
   }
   
@@ -428,7 +428,6 @@ function checkCanCanCollision(lata1, lata2) {
 
 // función para manejar colisión entre dos latas
 function handleCanCanCollision(lata1, lata2) {
-  // Vector de colisión (de lata2 a lata1)
   const dx = lata1.position.x - lata2.position.x;
   const dy = lata1.position.y - lata2.position.y;
   const dz = lata1.position.z - lata2.position.z;
@@ -879,6 +878,7 @@ function animate() {
         if (Math.abs(lata.userData.velocity.y) < 0.01 && 
             lata.userData.velocity.length() < 0.01) {
           lata.userData.velocity.set(0, 0, 0);
+          lata.userData.angularVelocity.set(0, 0, 0);
         }
       }
       const mesaX = 0;
