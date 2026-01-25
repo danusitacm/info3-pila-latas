@@ -3,13 +3,20 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 //texturas
 const textureLoader = new THREE.TextureLoader();
 const chocloTexture = textureLoader.load('/choclo.png');
+const cartelSanJuanTexture = textureLoader.load('/CartelSanJuan.png');
 
 chocloTexture.wrapS = THREE.ClampToEdgeWrapping;
 chocloTexture.wrapT = THREE.ClampToEdgeWrapping;
 chocloTexture.repeat.set(1, 1);
 chocloTexture.minFilter = THREE.LinearFilter;
 chocloTexture.magFilter = THREE.LinearFilter;
-chocloTexture.flipY = true; 
+chocloTexture.flipY = true;
+
+cartelSanJuanTexture.wrapS = THREE.ClampToEdgeWrapping;
+cartelSanJuanTexture.wrapT = THREE.ClampToEdgeWrapping;
+cartelSanJuanTexture.minFilter = THREE.LinearFilter;
+cartelSanJuanTexture.magFilter = THREE.LinearFilter;
+cartelSanJuanTexture.flipY = true; 
 
 // configuracion del renderizador
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -222,9 +229,10 @@ const cartelWidth = 14;
 const cartelHeight = 5;
 const cartelGeometry = new THREE.PlaneGeometry(cartelWidth, cartelHeight);
 const cartelMaterial = new THREE.MeshStandardMaterial({ 
-  color: 0xffffff,
+  map: cartelSanJuanTexture,
   side: THREE.DoubleSide,
-  roughness: 0.5
+  roughness: 0.3,
+  metalness: 0.1
 });
 const cartel = new THREE.Mesh(cartelGeometry, cartelMaterial);
 cartel.position.set(0, cartelHeight / 2, baseSize / 2);
