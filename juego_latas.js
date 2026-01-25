@@ -1,5 +1,15 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+//texturas
+const textureLoader = new THREE.TextureLoader();
+const chocloTexture = textureLoader.load('/choclo.png');
+
+chocloTexture.wrapS = THREE.ClampToEdgeWrapping;
+chocloTexture.wrapT = THREE.ClampToEdgeWrapping;
+chocloTexture.repeat.set(1, 1);
+chocloTexture.minFilter = THREE.LinearFilter;
+chocloTexture.magFilter = THREE.LinearFilter;
+chocloTexture.flipY = true; 
 
 // configuracion del renderizador
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -223,31 +233,29 @@ function crearLata(color = 0x888888) {
   const height = 1.5;
   const segments = 32;
 
-  // cilindro exterior
   const cylinderGeometry = new THREE.CylinderGeometry(radius, radius, height, segments, 1, true);
   const cylinderMaterial = new THREE.MeshStandardMaterial({ 
-    color: color, 
+    map: chocloTexture,
     side: THREE.DoubleSide,
-    metalness: 0.7,
-    roughness: 0.3
+    metalness: 0.2,
+    roughness: 0.8
   });
   const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
   cylinder.castShadow = true;
+  cylinder.rotation.y = Math.PI;
 
-  // base circular
   const circleGeometry = new THREE.CircleGeometry(radius, segments);
-  const circleMaterial = new THREE.MeshStandardMaterial({ 
-    color: color, 
+  const metalMaterial = new THREE.MeshStandardMaterial({ 
+    color: 0x888888,
     side: THREE.DoubleSide,
-    metalness: 0.7,
-    roughness: 0.3
+    metalness: 0.8,
+    roughness: 0.2
   });
-  const base = new THREE.Mesh(circleGeometry, circleMaterial);
+  const base = new THREE.Mesh(circleGeometry, metalMaterial);
   base.rotation.x = -Math.PI / 2;
   base.position.y = -height / 2;
 
-  // Tapa superior
-  const top = new THREE.Mesh(circleGeometry, circleMaterial);
+  const top = new THREE.Mesh(circleGeometry, metalMaterial);
   top.rotation.x = -Math.PI / 2;
   top.position.y = height / 2;
 
@@ -685,6 +693,7 @@ function animate() {
     velocity.add(gravity);
     sphere.position.add(velocity);
     
+    // Colisión con el suelo
     if (sphere.position.y - sphereRadius <= 0) {
       sphere.position.y = sphereRadius;
       velocity.y *= -0.5;
@@ -694,6 +703,101 @@ function animate() {
       if (Math.abs(velocity.y) < 0.01 && velocity.length() < 0.01) {
         velocity.set(0, 0, 0);
       }
+    }
+    
+    // Colisión con la mesa
+    const mesaX = 0;
+    const mesaZ = -5;
+    const mesaY = 5; 
+    const mesaHalfWidth = 6; 
+    const mesaHalfDepth = 3; 
+    const mesaTopY = mesaY + 0.15; 
+    
+    // Verificar si la pelota está cerca de la mesa para colisiones laterales y superior
+    const nearMesa = sphere.position.x >= mesaX - mesaHalfWidth - sphereRadius && 
+                     sphere.position.x <= mesaX + mesaHalfWidth + sphereRadius &&
+                     sphere.position.z >= mesaZ - mesaHalfDepth - sphereRadius && 
+                     sphere.position.z <= mesaZ + mesaHalfDepth + sphereRadius &&
+                     sphere.position.y >= mesaY - sphereRadius && 
+                     sphere.position.y <= mesaTopY + sphereRadius;
+    
+    if (nearMesa) {
+      if (sphere.position.x >= mesaX - mesaHalfWidth && 
+          sphere.position.x <= mesaX + mesaHalfWidth &&
+          sphere.position.z >= mesaZ - mesaHalfDepth && 
+          sphere.position.z <= mesaZ + mesaHalfDepth &&
+          sphere.position.y - sphereRadius <= mesaTopY && 
+          sphere.position.y > mesaTopY - 1 &&
+          velocity.y < 0) {
+        sphere.position.y = mesaTopY + sphereRadius;
+        velocity.y *= -0.7; 
+        velocity.x *= 0.85; 
+        velocity.z *= 0.85; 
+      }
+      
+      if (sphere.position.x <= mesaX - mesaHalfWidth + sphereRadius &&
+          sphere.position.z >= mesaZ - mesaHalfDepth && 
+          sphere.position.z <= mesaZ + mesaHalfDepth &&
+          sphere.position.y >= mesaY && sphere.position.y <= mesaTopY + sphereRadius &&
+          velocity.x < 0) {
+        sphere.position.x = mesaX - mesaHalfWidth - sphereRadius;
+        velocity.x *= -0.8; 
+      }
+      
+      if (sphere.position.x >= mesaX + mesaHalfWidth - sphereRadius &&
+          sphere.position.z >= mesaZ - mesaHalfDepth && 
+          sphere.position.z <= mesaZ + mesaHalfDepth &&
+          sphere.position.y >= mesaY && sphere.position.y <= mesaTopY + sphereRadius &&
+          velocity.x > 0) {
+        sphere.position.x = mesaX + mesaHalfWidth + sphereRadius;
+        velocity.x *= -0.8; 
+      }
+      
+      if (sphere.position.z >= mesaZ + mesaHalfDepth - sphereRadius &&
+          sphere.position.x >= mesaX - mesaHalfWidth && 
+          sphere.position.x <= mesaX + mesaHalfWidth &&
+          sphere.position.y >= mesaY && sphere.position.y <= mesaTopY + sphereRadius &&
+          velocity.z > 0) {
+        sphere.position.z = mesaZ + mesaHalfDepth + sphereRadius;
+        velocity.z *= -0.8; 
+      }
+      
+      if (sphere.position.z <= mesaZ - mesaHalfDepth + sphereRadius &&
+          sphere.position.x >= mesaX - mesaHalfWidth && 
+          sphere.position.x <= mesaX + mesaHalfWidth &&
+          sphere.position.y >= mesaY && sphere.position.y <= mesaTopY + sphereRadius &&
+          velocity.z < 0) {
+        sphere.position.z = mesaZ - mesaHalfDepth - sphereRadius;
+        velocity.z *= -0.8; 
+      }
+      
+      
+      if (Math.abs(velocity.y) < 0.01 && velocity.length() < 0.02) {
+        velocity.set(0, 0, 0);
+      }
+    }
+    
+    // Colisión con el cartel
+    const cartelX = 0; 
+    const cartelZ = -5 + 15/2; 
+    const cartelY = 5/2; 
+    const cartelHalfWidth = 14/2; 
+    const cartelHalfHeight = 5/2; 
+    const cartelThickness = 0.1; 
+    
+    if (sphere.position.x >= cartelX - cartelHalfWidth && 
+        sphere.position.x <= cartelX + cartelHalfWidth &&
+        sphere.position.y >= cartelY - cartelHalfHeight && 
+        sphere.position.y <= cartelY + cartelHalfHeight &&
+        sphere.position.z >= cartelZ - cartelThickness - sphereRadius && 
+        sphere.position.z <= cartelZ + cartelThickness + sphereRadius &&
+        velocity.z < 0) { 
+      
+      
+      sphere.position.z = cartelZ - cartelThickness - sphereRadius;
+      velocity.z *= -0.9; 
+      velocity.x *= 0.95; 
+      velocity.y *= 0.95; 
     }
     
     latas.forEach(lata => {
