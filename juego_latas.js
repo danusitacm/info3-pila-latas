@@ -1,7 +1,9 @@
-//texturas
-const textureLoader = new THREE.TextureLoader();
-const chocloTexture = textureLoader.load('choclo.png');
-const cartelSanJuanTexture = textureLoader.load('CartelSanJuan.png');
+try {
+
+    //texturas
+    const textureLoader = new THREE.TextureLoader();
+    const chocloTexture = textureLoader.load('choclo.png');
+    const cartelSanJuanTexture = textureLoader.load('CartelSanJuan.png');
 
 chocloTexture.wrapS = THREE.ClampToEdgeWrapping;
 chocloTexture.wrapT = THREE.ClampToEdgeWrapping;
@@ -26,11 +28,22 @@ document.body.appendChild(renderer.domElement);
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 8, 20);
 
-// controles de orbita
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.target.set(0, 5, 0);
-controls.enabled = false; 
+// controles de orbita (con fallback)
+let controls;
+try {
+    if (THREE.OrbitControls) {
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.target.set(0, 5, 0);
+        controls.enabled = false;
+        console.log("OrbitControls creado exitosamente");
+    } else {
+        console.warn("THREE.OrbitControls no está disponible");
+    }
+} catch (error) {
+    console.error("Error creando OrbitControls:", error);
+    controls = null;
+} 
 
 // escena
 const scene = new THREE.Scene();
@@ -907,9 +920,16 @@ function animate() {
   });
   
   verificarSoportes();  
-  controls.update();
+  if (controls) {
+    controls.update();
+  }
   renderer.render(scene, camera);
 }
 
 updateAimArrow();
 animate();
+
+} catch (error) {
+    console.error("Error en el juego:", error);
+    document.body.innerHTML = '<h1>Error cargando el juego: ' + error.message + '</h1><p>Revisa la consola para más detalles</p>';
+}
