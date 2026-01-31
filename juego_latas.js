@@ -1,9 +1,7 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 //texturas
 const textureLoader = new THREE.TextureLoader();
-const chocloTexture = textureLoader.load('/choclo.png');
-const cartelSanJuanTexture = textureLoader.load('/CartelSanJuan.png');
+const chocloTexture = textureLoader.load('choclo.png');
+const cartelSanJuanTexture = textureLoader.load('CartelSanJuan.png');
 
 chocloTexture.wrapS = THREE.ClampToEdgeWrapping;
 chocloTexture.wrapT = THREE.ClampToEdgeWrapping;
@@ -29,7 +27,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 camera.position.set(0, 8, 20);
 
 // controles de orbita
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 5, 0);
 controls.enabled = false; 
