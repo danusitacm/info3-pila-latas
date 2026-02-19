@@ -401,6 +401,36 @@ const arrowHelper = new THREE.ArrowHelper(
 );
 scene.add(arrowHelper);
 
+const MAX_SHOTS_PER_ROUND = 3;
+let tirosRestantes = MAX_SHOTS_PER_ROUND;
+
+const shotInfoPanel = document.createElement('div');
+shotInfoPanel.style.position = 'absolute';
+shotInfoPanel.style.top = '16px';
+shotInfoPanel.style.left = '16px';
+shotInfoPanel.style.color = '#ffffff';
+shotInfoPanel.style.fontFamily = 'Arial, Helvetica, sans-serif';
+shotInfoPanel.style.fontSize = '14px';
+shotInfoPanel.style.margin = '0';
+shotInfoPanel.style.padding = '0';
+shotInfoPanel.style.background = 'transparent';
+shotInfoPanel.style.border = 'none';
+shotInfoPanel.style.pointerEvents = 'none';
+document.body.appendChild(shotInfoPanel);
+
+function actualizarInfoTiro(extraMessage = '') {
+  const shotsText = tirosRestantes > 0 ? `Tiros restantes: ${tirosRestantes}` : 'Sin tiros restantes';
+  const instructions = tirosRestantes > 0
+    ? 'Ajusta la punteria con las flechas y lanza con ESPACIO o clic.'
+    : 'Pulsa R para reiniciar la partida.';
+  shotInfoPanel.innerHTML = `<strong>${shotsText}</strong><br>${instructions}`;
+  if (extraMessage) {
+    shotInfoPanel.innerHTML += `<br>${extraMessage}`;
+  }
+}
+
+actualizarInfoTiro();
+
 // variables para el lanzamiento
 let isLaunched = false;
 let velocity = new THREE.Vector3();
@@ -565,6 +595,31 @@ function verificarSoportes() {
   });
 }
 
+function reiniciarPosicionEsfera() {
+  sphere.position.set(0, cartelHeight, 10);
+  velocity.set(0, 0, 0);
+}
+
+function reiniciarEsferaSigTiro(extraMessage = '') {
+  reiniciarPosicionEsfera();
+  isLaunched = false;
+  arrowHelper.visible = tirosRestantes > 0;
+  if (arrowHelper.visible) {
+    updateAimArrow();
+  }
+  actualizarInfoTiro(extraMessage);
+}
+
+function nuevoMensajeTiro() {
+  if (tirosRestantes === 0) {
+    return 'No quedan tiros. Pulsa R para reiniciar.';
+  }
+  if (tirosRestantes === 1) {
+    return 'Ultimo tiro disponible.';
+  }
+  return '';
+}
+
 // funcion para actualizar la flecha
 function updateAimArrow() {
   if (!isLaunched) {
@@ -587,22 +642,30 @@ function updateAimArrow() {
 
 // funcion para lanzar la esfera
 function launchSphere() {
-  if (!isLaunched) {
-    const angleVRad = (aimAngleV * Math.PI) / 180;
-    const angleHRad = (aimAngleH * Math.PI) / 180;
-    
-    const direction = new THREE.Vector3(
-      Math.sin(angleHRad),
-      Math.sin(angleVRad),
-      -Math.cos(angleHRad)
-    );
-    direction.normalize();
-    
-    velocity.copy(direction).multiplyScalar(launchSpeed);
-    
-    isLaunched = true;
-    arrowHelper.visible = false;
+  if (isLaunched || tirosRestantes <= 0) {
+    if (tirosRestantes <= 0) {
+      actualizarInfoTiro('No quedan tiros. Pulsa R para reiniciar.');
+    }
+    return;
   }
+
+  const angleVRad = (aimAngleV * Math.PI) / 180;
+  const angleHRad = (aimAngleH * Math.PI) / 180;
+  
+  const direction = new THREE.Vector3(
+    Math.sin(angleHRad),
+    Math.sin(angleVRad),
+    -Math.cos(angleHRad)
+  );
+  direction.normalize();
+  
+  velocity.copy(direction).multiplyScalar(launchSpeed);
+  
+  isLaunched = true;
+  arrowHelper.visible = false;
+  tirosRestantes--;
+  const launchMessage = tirosRestantes === 0 ? 'Lanzamiento final en curso.' : 'Lanzamiento en curso...';
+  actualizarInfoTiro(launchMessage);
 }
 
 window.addEventListener('keydown', (event) => {
@@ -646,12 +709,8 @@ window.addEventListener('click', () => {
 function resetGame() {
   console.log('=== REINICIANDO JUEGO ===');
   
-  // Resetear pelota
-  sphere.position.set(0, cartelHeight, 10);
-  velocity.set(0, 0, 0);
-  isLaunched = false;
-  arrowHelper.visible = true;
-  updateAimArrow();
+  tirosRestantes = MAX_SHOTS_PER_ROUND;
+  reiniciarEsferaSigTiro();
   
   latasDerribadas = 0;
   
@@ -862,11 +921,17 @@ function animate() {
     
     if (sphere.position.y < -5 || Math.abs(sphere.position.x) > 30 || 
         sphere.position.z < -30 || sphere.position.z > 30) {
-      sphere.position.set(0, cartelHeight, 10);
-      velocity.set(0, 0, 0);
-      isLaunched = false;
-      arrowHelper.visible = true;
-      updateAimArrow();
+      reiniciarEsferaSigTiro(nuevoMensajeTiro());
+    }
+
+    const velocityThreshold = 0.0025;
+    const nearGround = sphere.position.y <= sphereRadius + 0.05;
+    if (isLaunched && velocity.length() < velocityThreshold && nearGround) {
+      reiniciarEsferaSigTiro(nuevoMensajeTiro());
+    }
+
+    if (isLaunched && velocity.lengthSq() === 0) {
+      reiniciarEsferaSigTiro(nuevoMensajeTiro());
     }
   }
   
