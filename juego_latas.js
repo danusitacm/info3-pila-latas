@@ -1,3 +1,6 @@
+import * as THREE from './threejs/three.module.js';
+import { OrbitControls } from './threejs/addons/OrbitControls.js';
+
 try {
 
     //texturas
@@ -31,15 +34,15 @@ camera.position.set(0, 8, 20);
 // controles de orbita (con fallback)
 let controls;
 try {
-    if (THREE.OrbitControls) {
-        controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.target.set(0, 5, 0);
-        controls.enabled = false;
-        console.log("OrbitControls creado exitosamente");
-    } else {
-        console.warn("THREE.OrbitControls no está disponible");
-    }
+  if (OrbitControls) {
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 5, 0);
+    controls.enabled = false;
+    console.log("OrbitControls creado exitosamente");
+  } else {
+    console.warn("OrbitControls no está disponible");
+  }
 } catch (error) {
     console.error("Error creando OrbitControls:", error);
     controls = null;

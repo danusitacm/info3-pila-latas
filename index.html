@@ -8,8 +8,13 @@
     </style>
   </head>
   <body>
-    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="juego_latas.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./threejs/three.module.js"
+        }
+      }
+    </script>
+    <script type="module" src="juego_latas.js"></script>
   </body>
 </html>
